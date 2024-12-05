@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Batik Fraktal Generator - Warna Lengkap</title>
+    <style>
+      body {
+        background-image: repeating-linear-gradient(
+          45deg,
+          #9b59b6,
+          #9b59b6 10px,
+          #8e44ad 10px,
+          #8e44ad 20px
+        );
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+
+      .controls > div {
+        margin: 10px;
+      }
+
+      label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      select,
+      input[type="number"] {
+        padding: 8px 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #45a049;
+      }
+
+      #fractal-canvas {
+        display: block;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Generator Batik Fraktal - Warna Lengkap</h1>
+
+      <div class="controls">
+        <div>
+          <label for="fractal-type">Jenis Fraktal:</label>
+          <select id="fractal-type">
+            <option value="mandelbrot">Mandelbrot</option>
+            <option value="julia">Julia</option>
+            <option value="sierpinski">Segitiga Sierpinski</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="color-scheme">Skema Warna:</label>
+          <select id="color-scheme">
+            <option value="multi-color">Multi Warna</option>
+            <option value="pastel">Pastel</option>
+            <option value="vibrant">Vibrant</option>
+            <option value="earth">Warna Bumi</option>
+            <option value="neon">Neon</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="max-iterations">Iterasi Maks:</label>
+          <input
+            type="number"
+            id="max-iterations"
+            value="100"
+            min="10"
+            max="500"
+          />
+        </div>
+
+        <div>
+          <button id="generate-button">Generate Batik</button>
+        </div>
+      </div>
+
+      <canvas id="fractal-canvas" width="600" height="600"></canvas>
+    </div>
+
+    <script>
+      const canvasEl = document.getElementById("fractal-canvas");
+      const ctx = canvasEl.getContext("2d");
+
+      const generateFractal = () => {
+        const fractalType = document.getElementById("fractal-type").value;
+        const colorScheme = document.getElementById("color-scheme").value;
+        const maxIterations = parseInt(
+          document.getElementById("max-iterations").value
+        );
+
+        ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+
+        switch (fractalType) {
+          case "mandelbrot":
+            generateMandelbrotSet(maxIterations, colorScheme);
+            break;
+          case "julia":
+            generateJuliaSet(maxIterations, colorScheme);
+            break;
+          case "sierpinski":
+            generateSierpinskiTriangle(maxIterations, colorScheme);
+            break;
+          default:
+            break;
+        }
+      };
+
+      const generateMandelbrotSet = (maxIterations, colorScheme) => {
+        const width = canvasEl.width;
+        const height = canvasEl.height;
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            const a = (x - width / 2) / (0.5 * width);
+            const b = (y - height / 2) / (0.5 * height);
+            let n = 0;
+            let z_a = a;
+            let z_b = b;
+
+            while (n < maxIterations && z_a * z_a + z_b * z_b <= 4) {
+              const temp = z_a * z_a - z_b * z_b + a;
+              z_b = 2 * z_a * z_b + b;
+              z_a = temp;
+              n += 1;
+            }
+
+            const color = getColorFromIterations(n, maxIterations, colorScheme);
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      };
+
+      const generateJuliaSet = (maxIterations, colorScheme) => {
+        const width = canvasEl.width;
+        const height = canvasEl.height;
+        const c_real = -0.4;
+        const c_imag = 0.6;
+
+        for (let x = 0; x < width; x++) {
+          for (let y = 0; y < height; y++) {
+            let z_a = (x - width / 2) / (0.5 * width);
+            let z_b = (y - height / 2) / (0.5 * height);
+            let n = 0;
+
+            while (n < maxIterations && z_a * z_a + z_b * z_b <= 4) {
+              const temp = z_a * z_a - z_b * z_b + c_real;
+              z_b = 2 * z_a * z_b + c_imag;
+              z_a = temp;
+              n += 1;
+            }
+
+            const color = getColorFromIterations(n, maxIterations, colorScheme);
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, 1, 1);
+          }
+        }
+      };
+
+      const generateSierpinskiTriangle = (maxIterations, colorScheme) => {
+        const width = canvasEl.width;
+        const height = canvasEl.height;
+        const points = [
+          { x: width / 2, y: 10 },
+          { x: 10, y: height - 10 },
+          { x: width - 10, y: height - 10 },
+        ];
+
+        let current = { x: width / 2, y: height / 2 };
+
+        for (let i = 0; i < maxIterations; i++) {
+          const randomPoint = points[Math.floor(Math.random() * points.length)];
+          current.x = (current.x + randomPoint.x) / 2;
+          current.y = (current.y + randomPoint.y) / 2;
+
+          const color = getColorFromIterations(i, maxIterations, colorScheme);
+          ctx.fillStyle = color;
+          ctx.fillRect(Math.floor(current.x), Math.floor(current.y), 1, 1);
+        }
+      };
+
+      const getColorFromIterations = (n, maxIterations, colorScheme) => {
+        const intensity = n / maxIterations;
+
+        switch (colorScheme) {
+          case "multi-color":
+            const colors = [
+              `hsl(${Math.floor(intensity * 360)}, 100%, 50%)`, // Rainbow
+              `rgba(255, 105, 180, ${intensity})`, // Pink
+              `rgba(0, 191, 255, ${intensity})`, // Blue
+              `rgba(50, 205, 50, ${intensity})`, // Green
+              `rgba(0, 0, 0, ${intensity})`, // Black
+              `rgba(138, 43, 226, ${intensity})`, // Purple
+              `rgba(139, 69, 19, ${intensity})`, // Brown
+              `rgba(255, 255, 0, ${intensity})`, // Yellow
+              `rgba(255, 0, 0, ${intensity})`, // Red
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+
+          case "pastel":
+            const pastelColors = [
+              `hsla(350, 100%, 80%, ${intensity})`, // Soft Pink
+              `hsla(195, 100%, 75%, ${intensity})`, // Soft Blue
+              `hsla(120, 100%, 75%, ${intensity})`, // Soft Green
+              `hsla(280, 100%, 75%, ${intensity})`, // Soft Purple
+              `hsla(30, 100%, 75%, ${intensity})`, // Soft Orange
+            ];
+            return pastelColors[
+              Math.floor(Math.random() * pastelColors.length)
+            ];
+
+          case "vibrant":
+            return `hsl(${Math.floor(intensity * 360)}, 100%, 50%)`;
+
+          case "earth":
+            const earthColors = [
+              `rgba(139, 69, 19, ${intensity})`, // Earth Brown
+              `rgba(34, 139, 34, ${intensity})`, // Forest Green
+              `rgba(70, 130, 180, ${intensity})`, // Ocean Blue
+              `rgba(210, 180, 140, ${intensity})`, // Cream
+            ];
+            return earthColors[Math.floor(Math.random() * earthColors.length)];
+
+          case "neon":
+            const neonColors = [
+              `rgba(255, 20, 147, ${intensity})`, // Neon Pink
+              `rgba(0, 255, 255, ${intensity})`, // Neon Cyan
+              `rgba(255, 255, 0, ${intensity})`, // Neon Yellow
+              `rgba(255, 0, 255, ${intensity})`, // Neon Magenta
+              `rgba(0, 255, 0, ${intensity})`, // Neon Green
+            ];
+            return neonColors[Math.floor(Math.random() * neonColors.length)];
+
+          default:
+            return "black";
+        }
+      };
+
+      document
+        .getElementById("generate-button")
+        .addEventListener("click", generateFractal);
+
+      // Generate fractal saat halaman dimuat
+      generateFractal();
+    </script>
+  </body>
+</html>
